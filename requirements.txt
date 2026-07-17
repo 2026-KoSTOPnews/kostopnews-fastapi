@@ -1,0 +1,21 @@
+# pip install -r requirements.txt
+
+fastapi
+uvicorn[standard]
+
+redis
+psycopg2-binary
+sqlalchemy
+pydantic
+pydantic-settings
+
+requests
+beautifulsoup4
+
+numpy
+
+google-genai
+
+python-dotenv
+
+apscheduler
