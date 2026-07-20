@@ -20,7 +20,7 @@ def analyze_sentiment_batch_service(reqs: list[SentimentRequest]) -> list[Sentim
         if result is not None:
             results.append(result)
 
-        time.sleep(10)
+        time.sleep(30)
 
     return results
 
