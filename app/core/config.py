@@ -7,6 +7,15 @@ class Settings(BaseSettings):
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-2.5-flash-lite"
 
+    # -------------------------
+    # Upstage
+    # -------------------------
+    UPSTAGE_API_KEY: str = ""
+    SOLAR_MODEL: str = "solar-pro3"
+
+    MAX_RETRY: int = 3
+    RETRY_DELAY: int = 2
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

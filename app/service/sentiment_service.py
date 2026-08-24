@@ -2,14 +2,12 @@ import json
 import time
 import logging
 
+from app.core.config import settings
 from app.infrastructure.llm.llm_client import call_llm
 from app.infrastructure.llm.prompts import sentiment_prompt
 from app.schema.sentiment import SentimentResponse, SentimentRequest
 
 logger = logging.getLogger(__name__)
-
-MAX_RETRY = 3
-RETRY_DELAY = 30
 
 def analyze_sentiment_batch_service(reqs: list[SentimentRequest]) -> list[SentimentResponse]:
     results = []
@@ -20,7 +18,7 @@ def analyze_sentiment_batch_service(reqs: list[SentimentRequest]) -> list[Sentim
         if result is not None:
             results.append(result)
 
-        time.sleep(30)
+        time.sleep(1)
 
     return results
 
@@ -31,7 +29,7 @@ def analyze_sentiment_service(req) -> SentimentResponse | None:
         req.content
     )
 
-    for attempt in range(MAX_RETRY):
+    for attempt in range(settings.MAX_RETRY):
         try:
             result = call_llm(prompt)
 
@@ -51,11 +49,11 @@ def analyze_sentiment_service(req) -> SentimentResponse | None:
                 "Sentiment analysis failed | article_id=%s | retry=%d/%d | error=%s",
                 req.article_id,
                 attempt + 1,
-                MAX_RETRY,
+                settings.MAX_RETRY,
                 e,
             )
 
-            if attempt < MAX_RETRY - 1:
-                time.sleep(RETRY_DELAY)
+            if attempt < settings.MAX_RETRY - 1:
+                time.sleep(settings.RETRY_DELAY)
 
     return None
