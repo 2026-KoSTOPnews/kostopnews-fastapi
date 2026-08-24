@@ -9,6 +9,21 @@ services:
     networks:
       - mlops-network
 
+  streamlit:
+    build: .
+    container_name: streamlit
+    command: streamlit run dashboard/app.py --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      FASTAPI_URL: http://fastapi:8000
+    depends_on:
+      - fastapi
+    networks:
+      - mlops-network
+
 networks:
   mlops-network:
     external: true
