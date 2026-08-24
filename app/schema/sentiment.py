@@ -1,4 +1,18 @@
+from datetime import datetime
+
 from pydantic import BaseModel
+
+class SentimentAggregateResponse(BaseModel):
+    period_start: datetime
+    positive_count: int
+    negative_count: int
+    neutral_count: int
+    sentiment_score: float
+
+class CompanySentimentResponse(BaseModel):
+    daily: list[SentimentAggregateResponse]
+    weekly: list[SentimentAggregateResponse]
+    monthly: list[SentimentAggregateResponse]
 
 class SentimentRequest(BaseModel):
     article_id: int
