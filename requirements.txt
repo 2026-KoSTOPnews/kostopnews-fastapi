@@ -14,7 +14,8 @@ beautifulsoup4
 
 numpy
 
-google-genai
+# google-genai
+openai
 
 python-dotenv
 
