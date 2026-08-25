@@ -29,5 +29,5 @@ jobs:
           context: .
           push: ${{ github.event_name == 'push' }}
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/interviewfit-fastapi:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/interviewfit-fastapi:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/kostopnews-fastapi:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/kostopnews-fastapi:${{ github.sha }}
