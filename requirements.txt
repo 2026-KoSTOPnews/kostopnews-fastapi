@@ -3,7 +3,6 @@
 fastapi
 uvicorn[standard]
 
-redis
 psycopg2-binary
 sqlalchemy
 pydantic
@@ -11,9 +10,6 @@ pydantic-settings
 
 requests
 beautifulsoup4
-
-streamlit
-plotly
 
 numpy
 
