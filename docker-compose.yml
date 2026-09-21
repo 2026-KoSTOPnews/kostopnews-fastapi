@@ -1,18 +1,17 @@
 services:
   fastapi:
-    build: .
+    image: boyeongg/kostopnews-fastapi:latest
     container_name: fastapi
     ports:
       - "8000:8000"
     env_file:
       - .env
     networks:
-      - mlops-network
+      - kostopnews-network
 
   streamlit:
-    build: .
+    image: boyeongg/kostopnews-dashboard:latest
     container_name: streamlit
-    command: streamlit run dashboard/app.py --server.address=0.0.0.0
     ports:
       - "8501:8501"
     env_file:
@@ -22,8 +21,8 @@ services:
     depends_on:
       - fastapi
     networks:
-      - mlops-network
+      - kostopnews-network
 
 networks:
-  mlops-network:
+  kostopnews-network:
     external: true
