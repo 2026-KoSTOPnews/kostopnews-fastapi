@@ -31,3 +31,16 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/kostopnews-fastapi:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/kostopnews-fastapi:${{ github.sha }}
+
+      - name: Deploy to EC2
+        if: github.event_name == 'push'
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/kostopnews-fastapi
+            docker compose pull
+            docker compose up -d
+            docker image prune -f

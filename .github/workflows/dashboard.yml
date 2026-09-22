@@ -32,3 +32,16 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/kostopnews-dashboard:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/kostopnews-dashboard:${{ github.sha }}
+            
+      - name: Deploy to EC2
+        if: github.event_name == 'push'
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/kostopnews-dashboard
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
