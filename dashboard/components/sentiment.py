@@ -102,7 +102,7 @@ def render_sentiment_chart(title: str, data: list[dict]):
             title="감성 점수",
             overlaying="y",
             side="right",
-            range=[0, 1],
+            range=[-1, 1],
             tickformat=".0%",
         ),
 
