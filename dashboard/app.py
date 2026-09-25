@@ -13,7 +13,18 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("📰 News Sentiment Dashboard")
+st.html(
+    """
+    <div style="
+        font-size: 3rem;
+        font-weight: 700;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+    ">
+        📰 News Sentiment Dashboard
+    </div>
+    """
+)
 
 companies = get_companies()
 
@@ -27,8 +38,6 @@ company = st.selectbox(
     format_func=lambda company: company["name"],
 )
 
-st.write(f"선택한 기업: **{company['name']}**")
-
 # 감성 분석
 selected_date = st.date_input(
     "조회 날짜",
@@ -37,20 +46,33 @@ selected_date = st.date_input(
 
 sentiment = get_company_sentiment(company["id"], selected_date)
 
-render_sentiment_chart(
-    "일간 분석",
-    sentiment["daily"]
+st.html(
+    """
+    <div style="margin-bottom: 2rem;"></div>
+    """
 )
 
-render_sentiment_chart(
-    "주간 분석",
-    sentiment["weekly"]
+tab_daily, tab_weekly, tab_monthly = st.tabs(
+    ["일간 분석", "주간 분석", "월간 분석"]
 )
 
-render_sentiment_chart(
-    "월간 분석",
-    sentiment["monthly"]
-)
+with tab_daily:
+    render_sentiment_chart(
+        "일간 분석",
+        sentiment["daily"]
+    )
+
+with tab_weekly:
+    render_sentiment_chart(
+        "주간 분석",
+        sentiment["weekly"]
+    )
+
+with tab_monthly:
+    render_sentiment_chart(
+        "월간 분석",
+        sentiment["monthly"]
+    )
 
 # 뉴스
 st.divider()
