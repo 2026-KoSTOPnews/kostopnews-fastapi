@@ -15,7 +15,7 @@ def get_news_by_date(db: Session, company_id: int, target_date: date, page: int 
         select(
             NewsArticle.id,
             NewsArticle.title,
-            NewsArticle.content,
+            NewsArticle.link,
             NewsArticle.pub_date,
             NewsAnalysis.summary,
             NewsAnalysis.sentiment,
@@ -62,7 +62,7 @@ def get_news_by_date(db: Session, company_id: int, target_date: date, page: int 
             {
                 "id": article.id,
                 "title": article.title,
-                "content": article.content,
+                "link": article.link,
                 "pub_date": article.pub_date,
                 "summary": article.summary,
                 "sentiment": article.sentiment,

@@ -11,4 +11,5 @@ class NewsArticle(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     title: Mapped[str] = mapped_column(Text, nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    link: Mapped[str] = mapped_column(Text, nullable=False)
     pub_date: Mapped[datetime] = mapped_column(TIMESTAMP, nullable=False)

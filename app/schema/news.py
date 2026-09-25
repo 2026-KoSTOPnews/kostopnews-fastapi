@@ -5,7 +5,7 @@ from pydantic import BaseModel
 class TodayNewsResponse(BaseModel):
     id: int
     title: str
-    content: str
+    link: str
     pub_date: datetime
 
     summary: str | None

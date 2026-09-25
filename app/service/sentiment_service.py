@@ -15,19 +15,13 @@ from app.schema.sentiment import SentimentResponse, SentimentRequest
 logger = logging.getLogger(__name__)
 
 def get_company_sentiment(db: Session, company_id: int, target_date: date) -> dict:
-    daily_end = target_date
-
-    weekly_end = target_date - timedelta(days=target_date.weekday())
-
-    monthly_end = target_date.replace(day=1)
-
-    def get_aggregates(period_type: str, end_date: date, limit: int):
+    def get_aggregates(period_type: str, limit: int):
         result = db.execute(
             select(NewsSentimentAggregate)
             .where(
                 NewsSentimentAggregate.company_id == company_id,
                 NewsSentimentAggregate.period_type == period_type,
-                NewsSentimentAggregate.period_start <= end_date,
+                NewsSentimentAggregate.period_start <= target_date,
             )
             .order_by(
                 NewsSentimentAggregate.period_start.desc()
@@ -35,24 +29,14 @@ def get_company_sentiment(db: Session, company_id: int, target_date: date) -> di
             .limit(limit)
         )
 
-        return list(reversed(result.scalars().all()))
+        rows = list(result.scalars().all())
+
+        return list(reversed(rows))
 
     return {
-        "daily": get_aggregates(
-            "DAILY",
-            daily_end,
-            30,
-        ),
-        "weekly": get_aggregates(
-            "WEEKLY",
-            weekly_end,
-            12,
-        ),
-        "monthly": get_aggregates(
-            "MONTHLY",
-            monthly_end,
-            12,
-        ),
+        "daily": get_aggregates("DAILY", 30),
+        "weekly": get_aggregates("WEEKLY", 12),
+        "monthly": get_aggregates("MONTHLY", 12),
     }
 
 def analyze_sentiment_batch_service(reqs: list[SentimentRequest]) -> list[SentimentResponse]:
@@ -69,11 +53,7 @@ def analyze_sentiment_batch_service(reqs: list[SentimentRequest]) -> list[Sentim
     return results
 
 def analyze_sentiment_service(req) -> SentimentResponse | None:
-    prompt = sentiment_prompt(
-        req.company_name,
-        req.title,
-        req.content
-    )
+    prompt = sentiment_prompt(req.company_name, req.title, req.content)
 
     for attempt in range(settings.MAX_RETRY):
         try:
