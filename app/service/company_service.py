@@ -6,7 +6,7 @@ from app.infrastructure.models.company import Company
 def get_companies(db: Session) -> list[Company]:
     result = db.execute(
         select(Company)
-        .order_by(Company.name)
+        .order_by(Company.id)
     )
 
     return list(result.scalars().all())

@@ -120,7 +120,7 @@ def render_news(company_id: int, selected_date, page_size: int = 5):
         if news["keywords"]:
             st.write(
                 " ".join(
-                    f"`#{keyword}`"
+                    f"`# {keyword}`"
                     for keyword in news["keywords"]
                 )
             )
