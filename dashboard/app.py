@@ -8,7 +8,7 @@ from components.sentiment import render_sentiment_chart
 from components.news import render_news
 
 st.set_page_config(
-    page_title="News Sentiment",
+    page_title="News Analysis",
     page_icon="📰",
     layout="wide",
 )
@@ -21,7 +21,7 @@ st.html(
         line-height: 1.5;
         margin-bottom: 1.5rem;
     ">
-        📰 News Sentiment Dashboard
+        📰 뉴스 분석 대시보드
     </div>
     """
 )
