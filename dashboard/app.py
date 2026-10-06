@@ -4,8 +4,10 @@ import streamlit as st
 
 from api import get_companies
 from api import get_company_sentiment
+from api import get_company_keywords
 from components.sentiment import render_sentiment_chart
 from components.news import render_news
+from components.keywords import render_keywords_chart
 
 st.set_page_config(
     page_title="News Sentiment",
@@ -45,6 +47,7 @@ selected_date = st.date_input(
 )
 
 sentiment = get_company_sentiment(company["id"], selected_date)
+keywords = get_company_keywords(company["id"], selected_date)
 
 st.html(
     """
@@ -52,26 +55,36 @@ st.html(
     """
 )
 
-tab_daily, tab_weekly, tab_monthly = st.tabs(
-    ["일간 분석", "주간 분석", "월간 분석"]
-)
+tab_daily, tab_weekly, tab_monthly = st.tabs(["일간 분석", "주간 분석", "월간 분석"])
 
 with tab_daily:
     render_sentiment_chart(
-        "일간 분석",
-        sentiment["daily"]
+        "일간 감성 분석",
+        sentiment["daily"],
+    )
+    render_keywords_chart(
+        "일간 주요 키워드",
+        keywords["daily"]["keywords"],
     )
 
 with tab_weekly:
     render_sentiment_chart(
-        "주간 분석",
-        sentiment["weekly"]
+        "주간 감성 분석",
+        sentiment["weekly"],
+    )
+    render_keywords_chart(
+        "주간 주요 키워드",
+        keywords["weekly"]["keywords"],
     )
 
 with tab_monthly:
     render_sentiment_chart(
-        "월간 분석",
-        sentiment["monthly"]
+        "월간 감성 분석",
+        sentiment["monthly"],
+    )
+    render_keywords_chart(
+        "월간 주요 키워드",
+        keywords["monthly"]["keywords"],
     )
 
 # 뉴스

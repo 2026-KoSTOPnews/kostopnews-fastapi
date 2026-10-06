@@ -5,16 +5,13 @@ from sqlalchemy import text
 from fastapi import FastAPI, Depends, Query
 from sqlalchemy.orm import Session
 
-from starlette.middleware.cors import CORSMiddleware
-
-from app.core.config import settings
 from app.infrastructure.database import engine, get_db
 from app.schema.company import CompanyResponse
-from app.schema.keyword import KeywordsResponse, KeywordsRequest
+from app.schema.keyword import KeywordsResponse, KeywordsRequest, CompanyKeywordResponse
 from app.schema.news import NewsPageResponse
 from app.schema.sentiment import SentimentRequest, SentimentResponse, CompanySentimentResponse
 from app.service.company_service import get_companies
-from app.service.keyword_service import extract_keywords_batch_service
+from app.service.keyword_service import extract_keywords_batch_service, get_company_keywords
 from app.service.news_service import get_news_by_date
 from app.service.sentiment_service import analyze_sentiment_batch_service, get_company_sentiment
 
@@ -27,6 +24,10 @@ def read_companies(db: Session = Depends(get_db)):
 @app.get("/api/companies/{company_id}/sentiment", response_model=CompanySentimentResponse)
 def read_company_sentiment(company_id: int, target_date: date = Query(...), db: Session = Depends(get_db)):
     return get_company_sentiment(db, company_id, target_date)
+
+@app.get("/api/companies/{company_id}/keywords", response_model=CompanyKeywordResponse)
+def read_company_keywords(company_id: int, target_date: date = Query(...), db: Session = Depends(get_db)):
+    return get_company_keywords(db, company_id, target_date)
 
 @app.get("/api/companies/{company_id}/news", response_model=NewsPageResponse)
 def read_today_news(company_id: int, target_date: date = Query(...), page: int = Query(1, ge=1), size: int = Query(5, ge=1, le=20), db: Session = Depends(get_db)):

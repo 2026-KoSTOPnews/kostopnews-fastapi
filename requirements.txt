@@ -8,6 +8,8 @@ sqlalchemy
 pydantic
 pydantic-settings
 
+python-dateutil
+
 requests
 beautifulsoup4
 
