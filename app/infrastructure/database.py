@@ -12,6 +12,8 @@ class Base(DeclarativeBase):
 def create_db_engine():
     return create_engine(
         settings.DATABASE_URL,
+        pool_size=3,
+        max_overflow=2,
         pool_pre_ping=True,
     )
 
