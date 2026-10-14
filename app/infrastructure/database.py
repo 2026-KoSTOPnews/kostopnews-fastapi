@@ -12,9 +12,10 @@ class Base(DeclarativeBase):
 def create_db_engine():
     return create_engine(
         settings.DATABASE_URL,
-        pool_size=3,
-        max_overflow=2,
+        pool_size=2,
+        max_overflow=0,
         pool_pre_ping=True,
+        pool_recycle=1800,
     )
 
 def create_session_factory(engine):
