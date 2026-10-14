@@ -1,7 +1,9 @@
+from fastapi import Request
+
 import json
 import time
 import logging
-from datetime import date, timedelta
+from datetime import date
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -39,25 +41,24 @@ def get_company_sentiment(db: Session, company_id: int, target_date: date) -> di
         "monthly": get_aggregates("MONTHLY", 12),
     }
 
-def analyze_sentiment_batch_service(reqs: list[SentimentRequest]) -> list[SentimentResponse]:
+def analyze_sentiment_batch_service(reqs: list[SentimentRequest], request: Request) -> list[SentimentResponse]:
     results = []
 
     for req in reqs:
-        result = analyze_sentiment_service(req)
+        result = analyze_sentiment_service(req, request)
 
         if result is not None:
             results.append(result)
 
-        time.sleep(1)
-
     return results
 
-def analyze_sentiment_service(req) -> SentimentResponse | None:
+def analyze_sentiment_service(req: SentimentRequest, request: Request) -> SentimentResponse | None:
+    client = request.app.state.llm_client
     prompt = sentiment_prompt(req.company_name, req.title, req.content)
 
     for attempt in range(settings.MAX_RETRY):
         try:
-            result = call_llm(prompt)
+            result = call_llm(client, prompt)
 
             parsed = json.loads(result)
 
