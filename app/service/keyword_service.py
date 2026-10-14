@@ -1,3 +1,5 @@
+from fastapi import Request
+
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 
@@ -18,19 +20,13 @@ logger = logging.getLogger(__name__)
 
 def get_company_keywords(db: Session, company_id: int, target_date: date) -> dict:
     def get_aggregates(period_type: str, keyword_limit: int):
-
         # 현재 기간 계산
         if period_type == "DAILY":
             period_start = target_date
-
         elif period_type == "WEEKLY":
-            period_start = target_date - timedelta(
-                days=target_date.weekday()
-            )
-
+            period_start = target_date - timedelta(days=target_date.weekday())
         elif period_type == "MONTHLY":
             period_start = target_date.replace(day=1)
-
         else:
             return {
                 "period_start": None,
@@ -41,10 +37,8 @@ def get_company_keywords(db: Session, company_id: int, target_date: date) -> dic
         # 이전 기간 계산
         if period_type == "DAILY":
             previous_period_start = period_start - timedelta(days=1)
-
         elif period_type == "WEEKLY":
             previous_period_start = period_start - timedelta(weeks=1)
-
         elif period_type == "MONTHLY":
             previous_period_start = period_start - relativedelta(months=1)
 
@@ -115,25 +109,24 @@ def get_company_keywords(db: Session, company_id: int, target_date: date) -> dic
         "monthly": get_aggregates("MONTHLY", 5),
     }
 
-def extract_keywords_batch_service(reqs: list[KeywordsRequest]) -> list[KeywordsResponse]:
+def extract_keywords_batch_service(reqs: list[KeywordsRequest], request: Request) -> list[KeywordsResponse]:
     results = []
 
     for req in reqs:
-        result = extract_keywords_service(req)
+        result = extract_keywords_service(req, request)
 
         if result is not None:
             results.append(result)
 
-        time.sleep(1)
-
     return results
 
-def extract_keywords_service(req: KeywordsRequest,) -> KeywordsResponse | None:
-    prompt = keyword_prompt(req.title, req.content,)
+def extract_keywords_service(req: KeywordsRequest, request: Request) -> KeywordsResponse | None:
+    client = request.app.state.llm_client
+    prompt = keyword_prompt(req.title, req.content)
 
     for attempt in range(settings.MAX_RETRY):
         try:
-            result = call_llm(prompt)
+            result = call_llm(client, prompt)
 
             parsed = json.loads(result)
 
