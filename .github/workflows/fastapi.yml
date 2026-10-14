@@ -1,5 +1,4 @@
-
-name: FastAPI CI/CD
+name: FastAPI CI
 
 on:
   push:
@@ -34,7 +33,6 @@ jobs:
       POSTGRES_DB: kostopnews_test
       POSTGRES_USER: test_user
       POSTGRES_PASSWORD: test_password
-
       UPSTAGE_API_KEY: test-key
       SOLAR_MODEL: solar-pro3
 
@@ -87,52 +85,3 @@ jobs:
           if [ -f /tmp/fastapi.pid ]; then
             kill "$(cat /tmp/fastapi.pid)" || true
           fi
-
-  docker:
-    needs: integration-test
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Login to Docker Hub
-        if: github.event_name == 'push'
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          push: ${{ github.event_name == 'push' }}
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/kostopnews-fastapi:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/kostopnews-fastapi:${{ github.sha }}
-
-      - name: Deploy to EC2
-        if: github.event_name == 'push'
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            cd ~/kostopnews-fastapi
-            git pull origin main
-            docker compose pull
-            docker compose up -d
-            docker image prune -f
-
-            for i in $(seq 1 30); do
-              if curl -fsS http://localhost:8000/health/db; then
-                echo "FastAPI deployment successful"
-                exit 0
-              fi
-              sleep 2
-            done
-
-            docker compose logs --tail=100 fastapi
-            exit 1
