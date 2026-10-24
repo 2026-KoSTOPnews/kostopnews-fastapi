@@ -30,46 +30,47 @@ def get_news_by_date(db: Session, company_id: int, target_date: date, page: int 
             NewsArticle.pub_date >= start_datetime,
             NewsArticle.pub_date < end_datetime,
         )
-        .order_by(
-            NewsArticle.pub_date.desc()
-        )
+        .order_by(NewsArticle.pub_date.desc())
         .offset((page - 1) * size)
         .limit(size + 1)
     )
 
     articles = result.all()
-
-    has_next = len(articles) == size + 1
-
+    has_next = len(articles) > size
     articles = articles[:size]
 
-    response = []
+    # 현재 페이지 기사 ID
+    article_ids = [article.id for article in articles]
 
-    for article in articles:
+    # 현재 페이지의 키워드를 한 번에 조회
+    keywords_by_article = {article_id: [] for article_id in article_ids}
+
+    if article_ids:
         keyword_result = db.execute(
-            select(NewsKeyword.keyword)
-            .where(
-                NewsKeyword.article_id == article.id
+            select(
+                NewsKeyword.article_id,
+                NewsKeyword.keyword,
             )
-            .order_by(NewsKeyword.id)
+            .where(NewsKeyword.article_id.in_(article_ids))
+            .order_by(NewsKeyword.article_id, NewsKeyword.id)
         )
 
-        keywords = list(
-            keyword_result.scalars().all()
-        )
+        for article_id, keyword in keyword_result.all():
+            keywords_by_article[article_id].append(keyword)
 
-        response.append(
-            {
-                "id": article.id,
-                "title": article.title,
-                "link": article.link,
-                "pub_date": article.pub_date,
-                "summary": article.summary,
-                "sentiment": article.sentiment,
-                "sentiment_score": article.sentiment_score,
-                "keywords": keywords,
-            }
-        )
+    response = [
+        {
+            "id": article.id,
+            "title": article.title,
+            "link": article.link,
+            "pub_date": article.pub_date,
+            "summary": article.summary,
+            "sentiment": article.sentiment,
+            "sentiment_score": article.sentiment_score,
+            "keywords": keywords_by_article[article.id],
+        }
+        for article in articles
+    ]
 
     return {
         "items": response,
