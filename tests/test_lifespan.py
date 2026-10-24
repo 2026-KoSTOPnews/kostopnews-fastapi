@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
+
 def test_lifespan():
     with (
         patch("app.core.lifespan.create_db_engine") as mock_create_engine,
