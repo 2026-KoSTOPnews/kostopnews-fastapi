@@ -3,15 +3,15 @@ from fastapi import Request
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
 
+import asyncio
 import json
-import time
 import logging
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.infrastructure.llm.llm_client import call_llm
+from app.infrastructure.llm.llm_client import call_llm, llm_semaphore
 from app.infrastructure.llm.prompts import keyword_prompt
 from app.infrastructure.models.news_keyword_aggregate import NewsKeywordAggregate
 from app.schema.keyword import KeywordsRequest, KeywordsResponse
@@ -109,25 +109,22 @@ def get_company_keywords(db: Session, company_id: int, target_date: date) -> dic
         "monthly": get_aggregates("MONTHLY", 5),
     }
 
-def extract_keywords_batch_service(reqs: list[KeywordsRequest], request: Request) -> list[KeywordsResponse]:
-    results = []
+async def extract_keywords_batch_service(reqs: list[KeywordsRequest], request: Request) -> list[KeywordsResponse]:
+    async def extract_with_limit(req: KeywordsRequest) -> KeywordsResponse | None:
+        async with llm_semaphore:
+            return await extract_keywords_service(req, request)
 
-    for req in reqs:
-        result = extract_keywords_service(req, request)
+    results = await asyncio.gather(*(extract_with_limit(req) for req in reqs))
 
-        if result is not None:
-            results.append(result)
+    return [result for result in results if result is not None]
 
-    return results
-
-def extract_keywords_service(req: KeywordsRequest, request: Request) -> KeywordsResponse | None:
+async def extract_keywords_service(req: KeywordsRequest, request: Request) -> KeywordsResponse | None:
     client = request.app.state.llm_client
     prompt = keyword_prompt(req.title, req.content)
 
     for attempt in range(settings.MAX_RETRY):
         try:
-            result = call_llm(client, prompt)
-
+            result = await call_llm(client, prompt)
             parsed = json.loads(result)
 
             return KeywordsResponse(
@@ -145,11 +142,6 @@ def extract_keywords_service(req: KeywordsRequest, request: Request) -> Keywords
             )
 
             if attempt < settings.MAX_RETRY - 1:
-                time.sleep(settings.RETRY_DELAY)
-
-    logger.error(
-        "Keyword extraction failed after retries | article_id=%s",
-        req.article_id,
-    )
+                await asyncio.sleep(settings.RETRY_DELAY * (2 ** attempt))
 
     return None
