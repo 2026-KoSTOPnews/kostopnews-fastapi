@@ -36,12 +36,12 @@ def read_today_news(company_id: int, target_date: date = Query(...), page: int =
     return get_news_by_date(db, company_id, target_date, page, size)
 
 @app.post("/sentiment/batch", response_model=list[SentimentResponse])
-def batch_sentiment(reqs: list[SentimentRequest], request: Request,):
-    return analyze_sentiment_batch_service(reqs, request)
+async def batch_sentiment(reqs: list[SentimentRequest], request: Request,):
+    return await analyze_sentiment_batch_service(reqs, request)
 
 @app.post("/keywords/batch", response_model=list[KeywordsResponse])
-def batch_keywords(reqs: list[KeywordsRequest], request: Request,):
-    return extract_keywords_batch_service(reqs, request)
+async def batch_keywords(reqs: list[KeywordsRequest], request: Request,):
+    return await extract_keywords_batch_service(reqs, request)
 
 @app.get("/")
 async def root():

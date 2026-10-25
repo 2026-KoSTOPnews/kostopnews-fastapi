@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     GEMINI_MODEL: str = "gemini-2.5-flash-lite"
 
     UPSTAGE_API_KEY: str = ""
-    SOLAR_MODEL: str = "solar-pro3"
+    SOLAR_MODEL: str = "solar-pro4"
 
     MAX_RETRY: int = 3
     RETRY_DELAY: int = 2

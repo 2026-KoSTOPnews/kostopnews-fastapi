@@ -1,7 +1,7 @@
 from fastapi import Request
 
+import asyncio
 import json
-import time
 import logging
 from datetime import date
 
@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.infrastructure.llm.llm_client import call_llm
+from app.infrastructure.llm.llm_client import call_llm, llm_semaphore
 from app.infrastructure.llm.prompts import sentiment_prompt
 from app.infrastructure.models.news_sentiment_aggregate import NewsSentimentAggregate
 from app.schema.sentiment import SentimentResponse, SentimentRequest
@@ -41,25 +41,22 @@ def get_company_sentiment(db: Session, company_id: int, target_date: date) -> di
         "monthly": get_aggregates("MONTHLY", 12),
     }
 
-def analyze_sentiment_batch_service(reqs: list[SentimentRequest], request: Request) -> list[SentimentResponse]:
-    results = []
+async def analyze_sentiment_batch_service(reqs: list[SentimentRequest], request: Request) -> list[SentimentResponse]:
+    async def analyze_with_limit(req: SentimentRequest) -> SentimentResponse | None:
+        async with llm_semaphore:
+            return await analyze_sentiment_service(req, request)
 
-    for req in reqs:
-        result = analyze_sentiment_service(req, request)
+    results = await asyncio.gather(*(analyze_with_limit(req) for req in reqs))
 
-        if result is not None:
-            results.append(result)
+    return [result for result in results if result is not None]
 
-    return results
-
-def analyze_sentiment_service(req: SentimentRequest, request: Request) -> SentimentResponse | None:
+async def analyze_sentiment_service(req: SentimentRequest, request: Request) -> SentimentResponse | None:
     client = request.app.state.llm_client
     prompt = sentiment_prompt(req.company_name, req.title, req.content)
 
     for attempt in range(settings.MAX_RETRY):
         try:
-            result = call_llm(client, prompt)
-
+            result = await call_llm(client, prompt)
             parsed = json.loads(result)
 
             return SentimentResponse(
@@ -81,6 +78,6 @@ def analyze_sentiment_service(req: SentimentRequest, request: Request) -> Sentim
             )
 
             if attempt < settings.MAX_RETRY - 1:
-                time.sleep(settings.RETRY_DELAY)
+                await asyncio.sleep(settings.RETRY_DELAY * (2 ** attempt))
 
     return None

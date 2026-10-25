@@ -2,14 +2,7 @@ from datetime import date, datetime
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
-import pytest
-
 from app.service.news_service import get_news_by_date
-
-
-@pytest.fixture
-def db():
-    return MagicMock()
 
 
 def make_article(
