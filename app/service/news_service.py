@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.infrastructure.models.news_analysis import NewsAnalysis
 from app.infrastructure.models.news_article import NewsArticle
 from app.infrastructure.models.news_keywords import NewsKeyword
+from app.infrastructure.models.news_mention import NewsMention
 
 def get_news_by_date(db: Session, company_id: int, target_date: date, page: int = 1, size: int = 5) -> dict:
     start_datetime = datetime.combine(target_date, datetime.min.time())
@@ -21,14 +22,20 @@ def get_news_by_date(db: Session, company_id: int, target_date: date, page: int 
             NewsAnalysis.sentiment,
             NewsAnalysis.sentiment_score,
         )
-        .join(
+        .outerjoin(
             NewsAnalysis,
-            NewsAnalysis.article_id == NewsArticle.id,
+            (NewsAnalysis.article_id == NewsArticle.id)
+            & (NewsAnalysis.company_id == company_id),
         )
         .where(
-            NewsAnalysis.company_id == company_id,
             NewsArticle.pub_date >= start_datetime,
             NewsArticle.pub_date < end_datetime,
+            select(NewsMention.article_id)
+            .where(
+                NewsMention.article_id == NewsArticle.id,
+                NewsMention.company_id == company_id,
+            )
+            .exists(),
         )
         .order_by(NewsArticle.pub_date.desc())
         .offset((page - 1) * size)
@@ -39,10 +46,7 @@ def get_news_by_date(db: Session, company_id: int, target_date: date, page: int 
     has_next = len(articles) > size
     articles = articles[:size]
 
-    # 현재 페이지 기사 ID
     article_ids = [article.id for article in articles]
-
-    # 현재 페이지의 키워드를 한 번에 조회
     keywords_by_article = {article_id: [] for article_id in article_ids}
 
     if article_ids:

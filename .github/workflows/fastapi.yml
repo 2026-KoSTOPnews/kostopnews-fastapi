@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  integration-test:
+  test:
     runs-on: ubuntu-latest
 
     services:
@@ -50,6 +50,18 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest httpx pytest-asyncio
+
+      - name: Initialize test database schema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          PGPASSWORD="$POSTGRES_PASSWORD" psql \
+            -h "$POSTGRES_HOST" \
+            -p "$POSTGRES_PORT" \
+            -U "$POSTGRES_USER" \
+            -d "$POSTGRES_DB" \
+            -v ON_ERROR_STOP=1 \
+            -f sql/init_test_db.sql
 
       - name: Run lifespan tests
         run: |

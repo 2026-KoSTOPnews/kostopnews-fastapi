@@ -17,19 +17,6 @@ class CompanyKeywordResponse(BaseModel):
     weekly: KeywordAggregateResponse
     monthly: KeywordAggregateResponse
 
-# class KeywordItem(BaseModel):
-#     keyword: str
-#     count: int
-#
-# class KeywordAggregateResponse(BaseModel):
-#     period_start: date | None
-#     keywords: list[KeywordItem]
-#
-# class CompanyKeywordResponse(BaseModel):
-#     daily: KeywordAggregateResponse
-#     weekly: KeywordAggregateResponse
-#     monthly: KeywordAggregateResponse
-
 class KeywordsRequest(BaseModel):
     article_id: int
     title: str
