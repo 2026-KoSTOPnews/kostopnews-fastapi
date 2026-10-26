@@ -6,8 +6,10 @@ from sqlalchemy import text
 from app.service.news_service import get_news_by_date
 
 
-def test_get_news_by_date_integration_without_analysis(db):
+def test_get_news_by_date_integration_without_analysis(real_db):
     """PostgreSQL에서 기업 멘션을 기준으로 분석 결과 없는 기사도 조회되는지 검증한다."""
+    db = real_db
+
     suffix = uuid4().hex
     target_date = date(2026, 10, 26)
 

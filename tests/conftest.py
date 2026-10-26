@@ -3,6 +3,22 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from app.infrastructure.database import create_db_engine, create_session_factory
+
+
+@pytest.fixture
+def real_db():
+    engine = create_db_engine()
+    TestingSessionLocal = create_session_factory(engine)
+
+    with TestingSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            session.rollback()
+
+    engine.dispose()
+
 
 @pytest.fixture
 def db():
