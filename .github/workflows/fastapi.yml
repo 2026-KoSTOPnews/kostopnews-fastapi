@@ -33,6 +33,7 @@ jobs:
       POSTGRES_DB: kostopnews_test
       POSTGRES_USER: test_user
       POSTGRES_PASSWORD: test_password
+      TEST_DATABASE_URL: postgresql+psycopg2://test_user:test_password@localhost:5432/kostopnews_test
       UPSTAGE_API_KEY: test-key
       SOLAR_MODEL: solar-pro4
 
