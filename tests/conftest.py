@@ -12,7 +12,8 @@ from app.infrastructure.models.company import Company
 from dotenv import load_dotenv
 
 
-load_dotenv(".env.test")
+load_dotenv(".env")
+load_dotenv(".env.test", override=False)
 
 
 @pytest.fixture
