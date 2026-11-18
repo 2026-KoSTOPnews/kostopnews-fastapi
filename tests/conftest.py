@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from app.infrastructure.database import Base, create_db_engine, create_session_factory
 from app.infrastructure.models.company import Company
 
@@ -24,22 +24,19 @@ def test_engine():
 
     engine = create_engine(database_url)
 
-    Base.metadata.drop_all(
-        bind=engine,
-        tables=[Company.__table__],
-    )
-
-    Base.metadata.create_all(
-        bind=engine,
-        tables=[Company.__table__],
-    )
+    # 테스트 시작 전 기업 데이터 초기화
+    with engine.begin() as connection:
+        connection.execute(
+            text("TRUNCATE TABLE companies RESTART IDENTITY CASCADE")
+        )
 
     yield engine
 
-    Base.metadata.drop_all(
-        bind=engine,
-        tables=[Company.__table__],
-    )
+    # 테스트 종료 후 데이터 초기화
+    with engine.begin() as connection:
+        connection.execute(
+            text("TRUNCATE TABLE companies RESTART IDENTITY CASCADE")
+        )
 
     engine.dispose()
 
