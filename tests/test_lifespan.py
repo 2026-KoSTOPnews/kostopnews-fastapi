@@ -9,6 +9,7 @@ def test_lifespan():
     with (
         patch("app.core.lifespan.create_db_engine") as mock_create_engine,
         patch("app.core.lifespan.create_llm_client") as mock_create_llm_client,
+        patch("app.core.lifespan.run_cache_scheduler") as mock_scheduler,
     ):
         mock_engine = mock_create_engine.return_value
         mock_llm_client = mock_create_llm_client.return_value
@@ -20,3 +21,4 @@ def test_lifespan():
 
         mock_llm_client.close.assert_called_once()
         mock_engine.dispose.assert_called_once()
+        mock_scheduler.assert_called_once()

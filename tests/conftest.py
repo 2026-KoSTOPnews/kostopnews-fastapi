@@ -12,7 +12,8 @@ from app.infrastructure.models.company import Company
 from dotenv import load_dotenv
 
 
-load_dotenv(".env.test")
+load_dotenv(".env")
+load_dotenv(".env.test", override=False)
 
 
 @pytest.fixture
@@ -43,7 +44,15 @@ def test_engine():
 
 @pytest.fixture
 def real_db():
-    engine = create_db_engine()
+    database_url = os.getenv("TEST_DATABASE_URL")
+
+    if not database_url:
+        pytest.fail("TEST_DATABASE_URL 환경변수가 설정되지 않았습니다.")
+
+    engine = create_engine(database_url)
+
+    Base.metadata.create_all(bind=engine)
+
     TestingSessionLocal = create_session_factory(engine)
 
     with TestingSessionLocal() as session:

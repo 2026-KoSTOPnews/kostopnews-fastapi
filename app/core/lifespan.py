@@ -1,6 +1,10 @@
+import asyncio
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+
+from app.core.cache_scheduler import run_cache_scheduler
 
 from app.infrastructure.database import Base, create_db_engine, create_session_factory
 from app.infrastructure.llm.llm_client import create_llm_client
@@ -21,8 +25,17 @@ async def lifespan(app: FastAPI):
     app.state.SessionLocal = create_session_factory(engine)
     app.state.llm_client = llm_client
 
+    scheduler_task = asyncio.create_task(run_cache_scheduler())
+
     try:
         yield
     finally:
+        scheduler_task.cancel()
+
+        try:
+            await scheduler_task
+        except asyncio.CancelledError:
+            pass
+
         llm_client.close()
         engine.dispose()
