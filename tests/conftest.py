@@ -1,9 +1,44 @@
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import os
+
 import pytest
 
-from app.infrastructure.database import create_db_engine, create_session_factory
+from sqlalchemy import create_engine, text
+from app.infrastructure.database import Base, create_db_engine, create_session_factory
+from app.infrastructure.models.company import Company
+
+from dotenv import load_dotenv
+
+
+load_dotenv(".env.test")
+
+
+@pytest.fixture
+def test_engine():
+    database_url = os.getenv("TEST_DATABASE_URL")
+
+    if not database_url:
+        pytest.fail("TEST_DATABASE_URL 환경변수가 설정되지 않았습니다.")
+
+    engine = create_engine(database_url)
+
+    # 테스트 시작 전 기업 데이터 초기화
+    with engine.begin() as connection:
+        connection.execute(
+            text("TRUNCATE TABLE companies RESTART IDENTITY CASCADE")
+        )
+
+    yield engine
+
+    # 테스트 종료 후 데이터 초기화
+    with engine.begin() as connection:
+        connection.execute(
+            text("TRUNCATE TABLE companies RESTART IDENTITY CASCADE")
+        )
+
+    engine.dispose()
 
 
 @pytest.fixture
