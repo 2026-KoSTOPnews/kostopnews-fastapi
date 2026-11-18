@@ -30,22 +30,15 @@ app.dependency_overrides[get_db] = override_get_db
 
 def test_word_cloud_uses_today_when_target_date_is_omitted():
     """날짜 미입력 시 KST 기준 오늘 날짜를 사용한다."""
-    expected_date = date.today()
 
-    with (
-        patch(
-            "app.router.word_cloud_router.get_today_kst",
-            return_value=expected_date,
-        ),
-        patch(
-            "app.router.word_cloud_router.get_company_word_cloud"
-        ) as mock_service,
-    ):
+    with patch(
+        "app.router.word_cloud_router.get_company_word_cloud"
+    ) as mock_service:
         mock_service.return_value = WordCloudResponse(
             company_id=1,
             period_type="daily",
-            period_start=expected_date,
-            period_end=expected_date,
+            period_start=date.today(),
+            period_end=date.today(),
             text_type="title",
             words=[],
         )
@@ -54,5 +47,5 @@ def test_word_cloud_uses_today_when_target_date_is_omitted():
             response = client.get("/api/companies/1/word-cloud")
 
     assert response.status_code == 200
-    assert response.json()["period_start"] == expected_date.isoformat()
-    assert mock_service.call_args.args[2] == expected_date
+    assert response.json()["period_start"] == date.today().isoformat()
+    assert mock_service.call_args.args[2] == date.today()
