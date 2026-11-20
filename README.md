@@ -1,4 +1,4 @@
-# 🚀 KoSTOPnews FastAPI
+# 📰 KoSTOPnews FastAPI
 
 기업별 뉴스 및 AI 분석 결과를 제공하는 REST API 서버입니다.
 
